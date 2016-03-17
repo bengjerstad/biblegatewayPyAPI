@@ -1,4 +1,4 @@
-<h1><strong>Unofficial Python API for BibleGateway Implementation</strong></h1>
+<h1><strong>Unofficial Python API for BibleGateway</strong></h1>
 
 <p><strong>This API implements method for:</strong></p>
 
