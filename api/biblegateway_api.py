@@ -4,6 +4,7 @@ import re
 import configparser
 import logging
 from bs4 import BeautifulSoup
+import pickle
 
 #Importing configuration params
 config = configparser.ConfigParser()
@@ -118,6 +119,20 @@ def get_passage(passage, version=default_version, numeration=True, title=True):
 
 
 """
+Get a specific Chapter
+params:
+    book: es (John)
+    chapter: es 1
+    version: es. ESV
+    numeration: show verse number or not
+    title: show passage title or not
+output:
+    dictionary(reference,version,text)
+"""
+def getChapterPassage(book, chapter, version=default_version, numeration=True, title=True):
+    return get_passage(book+' '+chapter, version, numeration, title)
+
+"""
 Search specific words (es. Fruit Spirit)
 params:
     search: words to search
@@ -182,3 +197,89 @@ def getVotd(version=default_version):
     data = json.loads(response.read())
 
     return {'reference': data['votd']['reference'], 'version': version, 'text': get_passage(data['votd']['reference'], version=default_version, numeration=False, title=False)['text']}
+
+"""
+Get Books List and chapter num for each book.
+params:
+    version: es. ESV
+output:
+    dictionary(book,chapter_num)
+"""
+def getBookList(version=default_version):
+
+    BG_URL = urls['booklist']
+
+    url = BG_URL.format(getVersionName(version))
+
+    try:
+        result = urllib2.urlopen(url)
+    except urllib2.URLError, e:
+        logging.warning('Error fetching passage:\n' + str(e))
+
+    html = result.read()
+
+    books = {}
+
+    for td in BeautifulSoup(html, 'lxml').findAll("td", {"class": "toggle-collapse2 book-name"}):
+
+        for tag in td.select("span"):
+            tag.decompose()
+
+        #get Chapter num for each book
+        last_a = None
+        for last_a in td.findNext('td').findAll('a'): pass
+        if last_a:
+            books[td.getText()] =last_a.text
+
+
+    return books
+
+
+
+"""
+Update version file fetching from biblegateway
+"""
+def updateVersionsList():
+
+    url = urls['update_version']
+
+    try:
+        result = urllib2.urlopen(url)
+    except urllib2.URLError, e:
+        logging.warning('Error fetching passage:\n' + str(e))
+
+    html = result.read()
+
+    versions = {}
+
+    eng = False
+    for opt in BeautifulSoup(html, 'lxml').find('select').find_all('option'):
+        #Add -Bible string to English Bible version
+        if opt.has_attr('class') and opt['class'][0] == 'lang':
+
+                if opt['value']=='KJ21':
+                    eng=True
+                else:
+                    eng=False
+
+        if not opt.has_attr('class'):
+            text = opt.text.replace(' ', '-').replace('(', '').replace(')', '')
+            if eng:
+                text += '-Bible'
+
+            versions[opt['value']]= text
+
+
+    with open(defaults['version_file'], "wb") as fp:
+        pickle.dump(versions, fp)
+
+"""
+Get Version description useful to get booklist
+"""
+#Get Version description for Books
+def getVersionName(version=default_version):
+
+    with open(defaults['version_file'], 'rb') as fp:
+        dict = pickle.load(fp)
+
+    return dict[version]
