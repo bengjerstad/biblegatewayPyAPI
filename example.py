@@ -1,4 +1,5 @@
 import api.biblegateway_api
+import sys
 
 bg_api = api.biblegateway_api
 
@@ -15,10 +16,12 @@ print("Reference :"+result['reference'])
 print("Version :"+result['version'])
 
 #breaks on windows command line.
-try: print(result['text'].replace('*', '\n\n').replace('#', '\n'))
-except UnicodeEncodeError:
-	#I need to find the best way to convert this. 
-    print("UnicodeEncodeError.")
+output = result['text'].replace('*', '\n\n').replace('#', '\n')
+
+try: print(output)
+except UnicodeEncodeError as err:
+	#Does not look correct, but at least I can see text on windows 
+    print(output.encode('utf8').decode(sys.stdout.encoding))
 except:
     print("Unexpected error:", sys.exc_info()[0])
     raise
