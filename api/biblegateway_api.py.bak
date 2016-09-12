@@ -1,5 +1,5 @@
 import json
-import urllib.request, urllib.error, urllib.parse
+import urllib2
 import re
 import configparser
 import logging
@@ -31,27 +31,27 @@ output:
 def get_passage(passage, version=default_version, numeration=True, title=True):
 
     def to_sup(text):
-        sups = {'0': '\u2070',
-                '1': '\xb9',
-                '2': '\xb2',
-                '3': '\xb3',
-                '4': '\u2074',
-                '5': '\u2075',
-                '6': '\u2076',
-                '7': '\u2077',
-                '8': '\u2078',
-                '9': '\u2079',
-                '-': '\u207b'}
+        sups = {u'0': u'\u2070',
+                u'1': u'\xb9',
+                u'2': u'\xb2',
+                u'3': u'\xb3',
+                u'4': u'\u2074',
+                u'5': u'\u2075',
+                u'6': u'\u2076',
+                u'7': u'\u2077',
+                u'8': u'\u2078',
+                u'9': u'\u2079',
+                u'-': u'\u207b'}
         return ''.join(sups.get(char, char) for char in text)
 
     BG_URL = urls['passage']
 
-    search = urllib.parse.quote(passage.lower().strip())
+    search = urllib2.quote(passage.lower().strip())
     url = BG_URL.format(search, version)
 
     try:
-      result = urllib.request.urlopen(url)
-    except urllib.error.URLError as e:
+      result = urllib2.urlopen(url)
+    except urllib2.URLError, e:
       logging.warning('Error fetching passage:\n' + str(e))
 
     html = result.read()
@@ -86,7 +86,7 @@ def get_passage(passage, version=default_version, numeration=True, title=True):
         tag['class'] = WANTED
         bad_strings = tag(text=re.compile('(\*|\_|\`)'))
         for bad_string in bad_strings:
-            stripped_text = strip_markdown(str(bad_string))
+            stripped_text = strip_markdown(unicode(bad_string))
             bad_string.replace_with(stripped_text)
             needed_stripping = True
 
@@ -151,8 +151,8 @@ def get_search_result(search, version=default_version, searchtype='ALL'):
     url = BG_URL.format(search, version, searchtype)
 
     try:
-      result = urllib.request.urlopen(url)
-    except urllib.error.URLError as e:
+      result = urllib2.urlopen(url)
+    except urllib2.URLError, e:
       logging.warning('Error fetching passage:\n' + str(e))
 
     html = result.read()
@@ -193,8 +193,9 @@ output:
 def getVotd(version=default_version):
 
     url = urls['votd']
-    response = urllib.request.urlopen(url)
-    data = json.loads(response.read().decode('utf-8'))
+    response = urllib2.urlopen(url)
+    data = json.loads(response.read())
+
     return {'reference': data['votd']['reference'], 'version': version, 'text': get_passage(data['votd']['reference'], version=default_version, numeration=False, title=False)['text']}
 
 """
@@ -211,8 +212,8 @@ def getBookList(version=default_version):
     url = BG_URL.format(getVersionName(version))
 
     try:
-        result = urllib.request.urlopen(url)
-    except urllib.error.URLError as e:
+        result = urllib2.urlopen(url)
+    except urllib2.URLError, e:
         logging.warning('Error fetching passage:\n' + str(e))
 
     html = result.read()
@@ -243,8 +244,8 @@ def updateVersionsList():
     url = urls['update_version']
 
     try:
-        result = urllib.request.urlopen(url)
-    except urllib.error.URLError as e:
+        result = urllib2.urlopen(url)
+    except urllib2.URLError, e:
         logging.warning('Error fetching passage:\n' + str(e))
 
     html = result.read()
