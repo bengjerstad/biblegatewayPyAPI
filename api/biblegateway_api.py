@@ -194,8 +194,7 @@ def getVotd(version=default_version):
 
     url = urls['votd']
     response = urllib.request.urlopen(url)
-    data = json.loads(response.read())
-
+    data = json.loads(response.read().decode('utf-8'))
     return {'reference': data['votd']['reference'], 'version': version, 'text': get_passage(data['votd']['reference'], version=default_version, numeration=False, title=False)['text']}
 
 """

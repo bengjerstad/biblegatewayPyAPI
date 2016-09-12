@@ -13,7 +13,15 @@ Rules for parsing:
 print("****** Result for passage John 3:1-15 ********")
 print("Reference :"+result['reference'])
 print("Version :"+result['version'])
-print(result['text'].replace('*', '\n\n').replace('#', '\n'))
+
+#breaks on windows command line.
+try: print(result['text'].replace('*', '\n\n').replace('#', '\n'))
+except UnicodeEncodeError:
+	#I need to find the best way to convert this. 
+    print("UnicodeEncodeError.")
+except:
+    print("Unexpected error:", sys.exc_info()[0])
+    raise
 
 #search result in bible getting a dictionary (reference,text)
 results = bg_api.get_search_result("Fruit Spirit")
