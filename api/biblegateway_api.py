@@ -68,8 +68,7 @@ def get_passage(passage, version=default_version, numeration=True, title=True):
     if not title:
         UNWANTED += ', h1, h2, h3, h4, h5, h6'
 
-
-    title = soup.select_one('.passage-display-bcv').text
+    title = soup.select_one('.text').text
     reference = strip_markdown(title.strip())
 
     for tag in soup.select(UNWANTED):
